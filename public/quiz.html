@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Personality Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .email-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .question-card.answered {
+            border-color: #667eea;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option-label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option-label input[type="radio"] {
+            margin-right: 12px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3c3;
+        }
+
+        .progress {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Financial Personality Quiz</h1>
+        <p class="subtitle">Discover your financial personality type</p>
+
+        <div id="message"></div>
+
+        <div class="email-section">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" placeholder="your.email@example.com" required />
+        </div>
+
+        <div class="progress" id="progress-text">Answer all questions to continue</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <div id="quiz-container">
+            <div class="loading">Loading questions...</div>
+        </div>
+
+        <button class="submit-btn" onclick="submitQuiz()" id="submit-btn" disabled>Submit Quiz</button>
+    </div>
+
+    <script>
+        let questions = [];
+        let answeredCount = 0;
+
+        async function loadQuestions() {
+            try {
+                const res = await fetch('/api/quiz/questions');
+                if (!res.ok) throw new Error('Failed to load questions');
+                
+                questions = await res.json();
+                const container = document.getElementById('quiz-container');
+                container.innerHTML = '';
+
+                questions.forEach((q, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'question-card';
+                    div.id = `question-${q.id}`;
+                    
+                    let optionsHtml = '';
+                    q.options.forEach((option) => {
+                        optionsHtml += `
+                            <label class="option-label">
+                                <input type="radio" name="q${q.id}" value="${option}" onchange="updateProgress()"/>
+                                <span>${option}</span>
+                            </label>
+                        `;
+                    });
+
+                    div.innerHTML = `
+                        <div class="question-text">${index + 1}. ${q.question}</div>
+                        ${optionsHtml}
+                    `;
+                    container.appendChild(div);
+                });
+
+                updateProgress();
+            } catch (error) {
+                showMessage('Error loading questions: ' + error.message, 'error');
+            }
+        }
+
+        function updateProgress() {
+            answeredCount = 0;
+            questions.forEach(q => {
+                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                const card = document.getElementById(`question-${q.id}`);
+                if (selected) {
+                    answeredCount++;
+                    card.classList.add('answered');
+                } else {
+                    card.classList.remove('answered');
+                }
+            });
+
+            const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = 
+                `${answeredCount} of ${questions.length} questions answered`;
+
+            const submitBtn = document.getElementById('submit-btn');
+            const email = document.getElementById('email').value;
+            submitBtn.disabled = !(answeredCount === questions.length && email);
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+        }
+
+        async function submitQuiz() {
+            const email = document.getElementById('email').value;
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (!email) {
+                showMessage('Please enter your email address', 'error');
+                return;
+            }
+
+            if (answeredCount !== questions.length) {
+                showMessage('Please answer all questions', 'error');
+                return;
+            }
+
+            const answers = questions.map(q => {
+                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                return { 
+                    question_id: q.id, 
+                    answer: selected ? selected.value : null 
+                };
+            });
+
+            // Simple result calculation (you can customize this)
+            const result_type = calculateResultType(answers);
+
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/quiz/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        email, 
+                        answers, 
+                        result_type, 
+                        source: 'landing_page' 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message || 'Quiz submitted successfully!', 'success');
+                    submitBtn.textContent = 'Submitted ✓';
+                    
+                    // Disable all inputs
+                    document.getElementById('email').disabled = true;
+                    document.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
+                } else {
+                    // Handle validation errors
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join('<br>');
+                        showMessage(errorMessages, 'error');
+                    } else {
+                        showMessage(data.message || 'Error submitting quiz', 'error');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Quiz';
+                }
+            } catch (error) {
+                showMessage('Network error: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Quiz';
+            }
+        }
+
+        function calculateResultType(answers) {
+            // Basic calculation - customize based on your logic
+            const firstAnswer = answers[0]?.answer || '';
+            
+            if (firstAnswer.includes('save')) return 'Rational Saver';
+            if (firstAnswer.includes('spend')) return 'Free Spender';
+            if (firstAnswer.includes('invest')) return 'Smart Investor';
+            if (firstAnswer.includes('plan')) return 'Careful Planner';
+            
+            return 'Rational Saver';
+        }
+
+        // Update progress when email is entered
+        document.getElementById('email').addEventListener('input', updateProgress);
+
+        // Check if email already exists (debounced)
+        let emailCheckTimeout;
+        document.getElementById('email').addEventListener('input', function(e) {
+            clearTimeout(emailCheckTimeout);
+            const email = e.target.value;
+            
+            if (email.includes('@')) {
+                emailCheckTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/api/quiz/check-email/${encodeURIComponent(email)}`);
+                        const data = await response.json();
+                        
+                        if (data.exists) {
+                            showMessage('This email has already completed the quiz.', 'error');
+                            document.getElementById('submit-btn').disabled = true;
+                        }
+                    } catch (error) {
+                        console.error('Email check failed:', error);
+                    }
+                }, 500);
+            }
+        });
+
+        // Load questions on page load
+        loadQuestions();
+    </script>
+</body>
+</html>
