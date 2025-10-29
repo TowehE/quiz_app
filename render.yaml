@@ -1,11 +1,31 @@
 services:
   - type: web
     name: quiz-app
-    env: php
+    # Set the runtime to use the Dockerfile
+    runtime: docker 
     region: oregon
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-    startCommand: php artisan serve --host 0.0.0.0 --port 10000
+
+    # Tell Render to execute the start.sh script
+    startCommand: ./start.sh 
+
+    envVars:
+      # Use Render's generation tool for a secure, unique key
+      - key: APP_KEY
+        generateValue: true 
+
+      - key: APP_ENV
+        value: production
+
+      - key: APP_DEBUG
+        value: 'false'
+        
+      # IMPORTANT: Add your database connection details here.
+      # Example if you linked a Render PostgreSQL database:
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: your-database-name
+      #     property: connectionString
+      
+      # The WEB_ROOT environment variable is often required by PHP container images
+      - key: WEB_ROOT
+        value: public
