@@ -4,78 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\QuizRequest;
 use App\Models\QuizResult;
-use App\Services\CsvExportService;
+use App\Mail\QuizResultMail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class QuizController extends Controller
 {
-    /**
-     * Handle quiz submission
-     */
     public function store(QuizRequest $request): JsonResponse
     {
         try {
-            // Get validated data from QuizRequest
-            $data = $request->validated();
-
-            // Use database transaction for data integrity
-            DB::beginTransaction();
-
-            // Save to database
-            $quiz = QuizResult::create($data);
-
-            // Save to CSV automatically
-            CsvExportService::appendToCsv($quiz);
-
-            DB::commit();
-
-            // Log successful submission
-            Log::info('Quiz submitted successfully', [
-                'email' => $quiz->email,
-                'result_type' => $quiz->result_type,
-                'id' => $quiz->id
-            ]);
-
+            $email = $request->input('email');
+            $skipEmail = $request->input('skip_email', false);
+            
+            // If they skip email, just return success
+            if ($skipEmail || empty($email)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Quiz completed successfully!'
+                ], 200);
+            }
+            
+            // Save email and send confirmation
+            $quiz = QuizResult::create(['email' => $email]);
+            
+            Mail::to($email)->send(new QuizResultMail($email));
+            
+            Log::info('Quiz email saved', ['email' => $email]);
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Quiz submitted successfully! Check your email for results.',
-                'data' => [
-                    'id' => $quiz->id,
-                    'result_type' => $quiz->result_type,
-                    'email' => $quiz->email
-                ]
+                'message' => 'Quiz completed! Check your email for confirmation.'
             ], 201);
-            
+                     
         } catch (\Exception $e) {
-            DB::rollBack();
-            
-            Log::error('Quiz submission failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+            Log::error('Quiz submission failed', ['error' => $e->getMessage()]);
+                     
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to save quiz. Please try again.',
-                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+                'message' => 'Failed to save email. Please try again.'
             ], 500);
         }
-    }
-
-    /**
-     * Check if email has already submitted
-     */
-    public function checkEmail(string $email): JsonResponse
-    {
-        $exists = QuizResult::where('email', $email)->exists();
-        
-        return response()->json([
-            'exists' => $exists,
-            'message' => $exists 
-                ? 'This email has already completed the quiz.' 
-                : 'Email is available.'
-        ]);
     }
 }

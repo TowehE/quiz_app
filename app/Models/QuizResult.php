@@ -10,11 +10,7 @@ class QuizResult extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['email', 'result_type', 'answers', 'source'];
-
-    protected $casts = [
-        'answers' => 'array'
-    ];
+    protected $fillable = ['email'];
 
     protected static function boot(): void
     {

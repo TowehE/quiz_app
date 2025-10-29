@@ -9,8 +9,16 @@ class QuizQuestionController extends Controller
 {
     public function index(): JsonResponse
     {
-        // Fetch all quiz questions
-        $questions = QuizQuestion::all();
+        // Only return active questions, don't include correct answers!
+        $questions = QuizQuestion::getActiveQuestions()
+            ->map(function($q) {
+                return [
+                    'id' => $q->id,
+                    'question' => $q->question,
+                    'options' => $q->options
+                ];
+            });
+
         return response()->json($questions);
     }
 }
