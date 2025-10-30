@@ -4,7 +4,6 @@
 set -e
 
 echo "--- Running Composer Install ---"
-# Run composer install
 composer install --no-dev --optimize-autoloader
 
 echo "--- Caching Configuration ---"
@@ -14,8 +13,9 @@ php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
-# You may also need to run migrations here if your app uses a database
-# php artisan migrate --force
+# If needed: php artisan migrate --force
 
-# Now, execute the container's original command (which starts Nginx/PHP-FPM)
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf -n
+echo "--- Starting Web Server (Supervisord) ---"
+# Start the supervisor process, which manages Nginx and PHP-FPM
+# Use the direct command expected by the richarvey/nginx-php-fpm image
+exec /usr/bin/supervisord -n
