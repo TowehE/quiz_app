@@ -7,11 +7,14 @@ WORKDIR /var/www/html
 # Copy all your application files into the container
 COPY . /var/www/html
 
-# 💥 NEW LINE: Ensure the startup script is executable 
+# 💥 FIX FOR NGINX 404: Copy the custom Nginx config and replace the default one
+COPY nginx-site.conf /etc/nginx/sites-available/default.conf
+
+# Ensure the startup script is executable (Fixes Status 126)
 RUN chmod +x start.sh 
-# You should also apply this to the copied code, though the base image 
-# often handles this for its user:
-RUN chown -R www-data:www-data /var/www/html 
+
+# Fix permissions for the web server user
+RUN chown -R www-data:www-data /var/www/html
 
 # Set the webroot to the 'public' directory, standard for Laravel
 ENV WEBROOT /var/www/html/public

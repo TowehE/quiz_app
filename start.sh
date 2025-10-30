@@ -17,5 +17,5 @@ php artisan event:cache
 
 echo "--- Starting Web Server (Supervisord) ---"
 # Start the supervisor process, which manages Nginx and PHP-FPM
-# Use the direct command expected by the richarvey/nginx-php-fpm image
+# This command was confirmed to resolve the Status 2 error
 exec /usr/bin/supervisord -n
