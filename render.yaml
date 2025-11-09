@@ -7,7 +7,7 @@ services:
 
     envVars:
       - key: APP_KEY
-        generateValue: true 
+        value: base64:Hyz0nDPdm9PyqYzmDqVnjYMtorqxEFPxACeMBPjVo88=
 
       - key: APP_ENV
         value: production
@@ -15,16 +15,26 @@ services:
       - key: APP_DEBUG
         value: 'false'
 
-      # PostgreSQL Configuration (credentials auto-injected by Render)
+      # CRITICAL: Force PostgreSQL connection
       - key: DB_CONNECTION
         value: pgsql
         
-      - key: DATABASE_URL
-        fromDatabase:
-          name: quiz-db
-          property: connectionString
+      - key: DB_HOST
+        value: aws-1-eu-north-1.pooler.supabase.com
+        
+      - key: DB_PORT
+        value: '6543'
+        
+      - key: DB_DATABASE
+        value: postgres
+        
+      - key: DB_USERNAME
+        value: postgres.xvuzwamukjvrnwengddk
+        
+      - key: DB_PASSWORD
+        sync: false  # Set this manually in Render dashboard
       
-      # Mail Configuration (set all sensitive values in Render dashboard)
+      # Mail Configuration
       - key: MAIL_MAILER
         value: smtp
         
@@ -35,7 +45,7 @@ services:
         value: '587'
         
       - key: MAIL_USERNAME
-        sync: false  
+        value: toweh02@gmail.com
         
       - key: MAIL_PASSWORD
         sync: false  
@@ -44,14 +54,11 @@ services:
         value: tls
         
       - key: MAIL_FROM_ADDRESS
-        sync: false  
+        value: toweh02@gmail.com
         
       - key: MAIL_FROM_NAME
         value: Domtrade
       
-      - key: WEB_ROOT
-        value: public
-        
       - key: SESSION_DRIVER
         value: file
         
@@ -59,4 +66,4 @@ services:
         value: database
         
       - key: CACHE_STORE
-        value: database
+        value: file  # Changed from database to file
