@@ -11,12 +11,10 @@ class QuizResultMail extends Mailable
     use Queueable, SerializesModels;
 
     public $email;
-    public $score;
 
-    public function __construct($email, $score)
+    public function __construct($email)
     {
         $this->email = $email;
-        $this->score = $score;
     }
 
     public function build()

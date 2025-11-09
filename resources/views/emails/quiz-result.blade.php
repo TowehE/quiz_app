@@ -5,8 +5,6 @@ Hello,
 
 Thank you for completing the Domtrade 2025 quiz!
 
-## Your Score: **{{ $score }}**
-
 ---
 
 Follow us on Instagram: **@domtrade2025**

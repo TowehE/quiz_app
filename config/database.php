@@ -83,7 +83,7 @@ return [
             ]) : [],
         ],
 
-        'pgsql' => [
+       'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
@@ -95,7 +95,10 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => 'require',
+            'options' => extension_loaded('pdo_pgsql') ? [
+                PDO::ATTR_TIMEOUT => 10,
+            ] : [],
         ],
 
         'sqlsrv' => [

@@ -10,12 +10,10 @@ return new class extends Migration
     {
         Schema::create('quiz_results', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('email')->index();
-            $table->string('result_type');
-            $table->json('answers'); // User's answers: {question_id: answer}
-            $table->integer('score')->nullable(); // NEW: Optional score
-            $table->string('source')->default('web');
+            $table->string('email')->unique();
             $table->timestamps();
+            
+            $table->index('email');
         });
     }
 

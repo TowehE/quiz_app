@@ -18,21 +18,14 @@ class CsvExportService
             
             // Initialize CSV if it doesn't exist
             if (!Storage::exists($csvPath)) {
-                $headers = "ID,Email,Result Type,Score,Answers,Source,Submitted At\n";
+                $headers = "Email,Submitted At\n";
                 Storage::put($csvPath, $headers);
             }
             
-            // Prepare new row (escape commas in JSON)
-            $answersJson = str_replace(',', ';', json_encode($quiz->answers));
-            
+            // Prepare new row
             $row = sprintf(
-                "%s,%s,%s,%s,%s,%s,%s\n",
-                $quiz->id,
+                "%s,%s\n",
                 $quiz->email,
-                $quiz->result_type,
-                $quiz->score ?? 'N/A',
-                $answersJson,
-                $quiz->source,
                 $quiz->created_at->format('Y-m-d H:i:s')
             );
             
@@ -52,21 +45,14 @@ class CsvExportService
         $csvPath = 'exports/quiz_results_full_' . now()->format('Y-m-d_His') . '.csv';
         
         // Start with headers
-        $csv = "ID,Email,Result Type,Score,Answers,Source,Submitted At\n";
+        $csv = "Email,Submitted At\n";
         
         // Add all records
         QuizResult::chunk(100, function ($results) use (&$csv) {
             foreach ($results as $result) {
-                $answersJson = str_replace(',', ';', json_encode($result->answers));
-                
                 $csv .= sprintf(
-                    "%s,%s,%s,%s,%s,%s,%s\n",
-                    $result->id,
+                    "%s,%s\n",
                     $result->email,
-                    $result->result_type,
-                    $result->score ?? 'N/A',
-                    $answersJson,
-                    $result->source,
                     $result->created_at->format('Y-m-d H:i:s')
                 );
             }

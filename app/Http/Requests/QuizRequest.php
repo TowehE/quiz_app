@@ -14,14 +14,14 @@ class QuizRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'nullable|email|max:255|unique:quiz_results,email',
-            'skip_email' => 'nullable|boolean'
+            'email' => 'required|email|max:255|unique:quiz_results,email'
         ];
     }
 
     public function messages(): array
     {
         return [
+            'email.required' => 'Email is required.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email has already completed the quiz.'
         ];

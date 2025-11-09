@@ -15,22 +15,18 @@ class QuizController extends Controller
     {
         try {
             $email = $request->input('email');
-            $skipEmail = $request->input('skip_email', false);
             
-            // If they skip email, just return success
-            if ($skipEmail || empty($email)) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Quiz completed successfully!'
-                ], 200);
-            }
+            Log::info('Attempting to save email', ['email' => $email]);
             
-            // Save email and send confirmation
+            // Save only email
             $quiz = QuizResult::create(['email' => $email]);
             
+            Log::info('Email saved successfully', ['quiz_id' => $quiz->id]);
+            
+            // Send confirmation email
             Mail::to($email)->send(new QuizResultMail($email));
             
-            Log::info('Quiz email saved', ['email' => $email]);
+            Log::info('Email sent successfully', ['email' => $email]);
             
             return response()->json([
                 'success' => true,
@@ -38,11 +34,17 @@ class QuizController extends Controller
             ], 201);
                      
         } catch (\Exception $e) {
-            Log::error('Quiz submission failed', ['error' => $e->getMessage()]);
+            Log::error('Quiz submission failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
                      
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to save email. Please try again.'
+                'message' => 'Failed to save email. Please try again.',
+                'error' => $e->getMessage() // Temporarily expose error for debugging
             ], 500);
         }
     }
