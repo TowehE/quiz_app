@@ -25,13 +25,10 @@ php artisan view:cache
 echo "--- Running Migrations ---"
 php artisan migrate --force
 
+echo "--- Starting Queue Worker in Background ---"
+php artisan queue:work --daemon &
+
 echo "--- Starting Web Server (Supervisord) ---"
 exec /usr/bin/supervisord -n
 ```
 
-### 3. In Render Dashboard - Add Environment Variables:
-
-Go to your service in Render and manually add:
-```
-DB_PASSWORD=K0hDpIvicXpvPQNu
-MAIL_PASSWORD=qwkh flrc arsm ihep

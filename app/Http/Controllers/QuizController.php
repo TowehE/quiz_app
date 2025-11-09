@@ -23,10 +23,10 @@ class QuizController extends Controller
             
             Log::info('Email saved successfully', ['quiz_id' => $quiz->id]);
             
-            // Send confirmation email
-            Mail::to($email)->send(new QuizResultMail($email));
+            // Queue the email instead of sending immediately
+            Mail::to($email)->queue(new QuizResultMail($email));
             
-            Log::info('Email sent successfully', ['email' => $email]);
+            Log::info('Email queued successfully', ['email' => $email]);
             
             return response()->json([
                 'success' => true,
@@ -37,14 +37,11 @@ class QuizController extends Controller
             Log::error('Quiz submission failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
             ]);
                      
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save email. Please try again.',
-                'error' => $e->getMessage() // Temporarily expose error for debugging
             ], 500);
         }
     }
