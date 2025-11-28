@@ -24,9 +24,9 @@ class QuizController extends Controller
             Log::info('Email saved successfully', ['quiz_id' => $quiz->id]);
             
             // Queue the email instead of sending immediately
-            Mail::to($email)->queue(new QuizResultMail($email));
+            Mail::to($email)->send(new QuizResultMail($email));
             
-            Log::info('Email queued successfully', ['email' => $email]);
+            Log::info('Email send successfully', ['email' => $email]);
             
             return response()->json([
                 'success' => true,
