@@ -96,11 +96,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'require',
-            'options' => extension_loaded('pdo_pgsql') ? [
+            'options' => extension_loaded('pdo_pgsql')  ? array_filter([
+                PDO::ATTR_PERSISTENT => false,          
+                PDO::ATTR_EMULATE_PREPARES => true,    
                 PDO::ATTR_TIMEOUT => 10,
-            ] : [],
-        ],
-
+           ]) : [],
+         ],
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
